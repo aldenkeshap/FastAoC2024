@@ -4,9 +4,15 @@ use gxhash::{HashMap, HashMapExt};
 
 const MAX_DIGITS: usize = 12;
 
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 struct Digits {
     digits: [u8; MAX_DIGITS],
+}
+
+impl Hash for Digits {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        state.write(&self.digits);
+    }
 }
 
 impl Digits {
@@ -61,7 +67,7 @@ impl Digits {
     }
 
     fn single_digit(&self) -> bool {
-        self.digits[1..].iter().all(|i| *i == 0)
+        self.length() <= 1
     }
 }
 
@@ -84,7 +90,7 @@ fn blink_len_old(x: &mut Digits, times: u8, cache: &mut HashMap<(Digits, u8), u6
 
     let r = if x.even_length() {
         let mut other: Digits = x.split();
-        blink_len_old(x, times - 1, cache) + blink_len_old(&mut other, times - 1, cache)
+        blink_len_old(&mut other, times - 1, cache) + blink_len_old(x, times - 1, cache)
     } else {
         x.multiply(2024);
         blink_len_old(x, times - 1, cache)
@@ -93,51 +99,20 @@ fn blink_len_old(x: &mut Digits, times: u8, cache: &mut HashMap<(Digits, u8), u6
     r
 }
 
-// fn blink_len<T: Number + Debug>(
-//     x: &mut T,
-//     mut times: u8,
-//     cache: &mut HashMap<(T, u8), u64>,
-// ) -> u64 {
-//     let mut additional = [0; 76];
-//     let mut xs = [T::new(0); 76];
-//     let times_start = times;
-//     while times > 0 {
-//         xs[times as usize] = *x;
-//         if x.flip_zero_one() {
-//         } else {
-//             let key = (*x, times);
-//             let entry = cache.get(&key).copied();
-//             if let Some(e) = entry {
-//                 let mut sum = e;
-//                 for t in (times as usize)..=(times_start as usize) {
-//                     sum += additional[t];
-//                     let k = (xs[t], t as u8);
-//                     cache.insert(k, sum);
-//                 }
-//                 return sum;
-//             }
-
-//             if x.even_length() {
-//                 let mut other: T = x.split();
-//                 let other_len = blink_len(&mut other, times - 1, cache);
-//                 additional[times as usize] = other_len;
-//             } else {
-//                 x.multiply(2024);
-//             };
-//         }
-
-//         times -= 1;
-//     }
-//     let mut sum = 1;
-//     for t in 1..=(times_start as usize) {
-//         sum += additional[t];
-//         let k = (xs[t], t as u8);
-//         cache.insert(k, sum);
-//     }
-//     additional.iter().sum::<u64>()
-// }
-
 pub fn part1(input: &str) -> u64 {
+    let mut cache = HashMap::new();
+    input
+        .split(' ')
+        .map(|s| s.parse().unwrap())
+        .map(|n| {
+            let mut num = Digits::new(n);
+
+            blink_len_old(&mut num, 25, &mut cache)
+        })
+        .sum()
+}
+
+pub fn part2(input: &str) -> u64 {
     let mut cache = HashMap::new();
     input
         .split(' ')
