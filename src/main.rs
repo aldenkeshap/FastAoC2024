@@ -7,7 +7,7 @@ fn main() {
     //     assert_eq!(r, 284973560658514);
     // }
     let r = day11::part1("92 0 286041 8034 34394 795 8 2051489");
-    // let r = day11::part1("6");
+    // let r = day11::part1("1");
     // let r = day11::part1("125 17");
     // let r = day11::part1("0 1 10 99 999");
     println!("RES: {r}");
