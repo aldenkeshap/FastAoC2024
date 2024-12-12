@@ -75,45 +75,45 @@ impl Number for Digits {
     // fn split(&)
 }
 
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
-struct Simple {
-    i: u64,
-}
+// #[derive(PartialEq, Eq, Hash, Clone, Copy)]
+// struct Simple {
+//     i: u64,
+// }
 
-impl Debug for Simple {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.i)
-    }
-}
+// impl Debug for Simple {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         write!(f, "{}", self.i)
+//     }
+// }
 
-impl Number for Simple {
-    fn new(i: u64) -> Self {
-        Self { i }
-    }
+// impl Number for Simple {
+//     fn new(i: u64) -> Self {
+//         Self { i }
+//     }
 
-    fn is_zero(&self) -> bool {
-        self.i == 0
-    }
+//     fn is_zero(&self) -> bool {
+//         self.i == 0
+//     }
 
-    fn even_length(&self) -> bool {
-        let s = format!("{}", self.i);
-        let len = s.len();
-        len % 2 == 0
-    }
+//     fn even_length(&self) -> bool {
+//         let s = format!("{}", self.i);
+//         let len = s.len();
+//         len % 2 == 0
+//     }
 
-    fn split(&mut self) -> Self {
-        let s = format!("{}", self.i);
-        let middle = s.len() / 2;
-        let left: u64 = s[..middle].parse().unwrap();
-        let right: u64 = s[middle..].parse().unwrap();
-        self.i = left;
-        Self::new(right)
-    }
+//     fn split(&mut self) -> Self {
+//         let s = format!("{}", self.i);
+//         let middle = s.len() / 2;
+//         let left: u64 = s[..middle].parse().unwrap();
+//         let right: u64 = s[middle..].parse().unwrap();
+//         self.i = left;
+//         Self::new(right)
+//     }
 
-    fn multiply(&mut self, n: u64) {
-        self.i *= n;
-    }
-}
+//     fn multiply(&mut self, n: u64) {
+//         self.i *= n;
+//     }
+// }
 
 fn blink_len<T: Number + Debug>(x: &mut T, times: u8, cache: &mut HashMap<(T, u8), u64>) -> u64 {
     if times == 0 {
@@ -128,6 +128,11 @@ fn blink_len<T: Number + Debug>(x: &mut T, times: u8, cache: &mut HashMap<(T, u8
     if let Some(e) = entry {
         return *e;
     }
+
+    if times == 1 {
+        return if x.even_length() { 2 } else { 1 };
+    }
+
     let r = if x.even_length() {
         let mut other: T = x.split();
         blink_len(x, times - 1, cache) + blink_len(&mut other, times - 1, cache)
