@@ -5,7 +5,7 @@ use gxhash::{HashMap, HashMapExt};
 trait Number: Eq + Hash + Copy {
     fn new(n: u64) -> Self;
 
-    fn is_zero(&self) -> bool;
+    fn flip_zero_one(&mut self) -> bool;
 
     fn even_length(&self) -> bool;
 
@@ -29,13 +29,12 @@ impl Digits {
             .map(|l| l + 1)
             .unwrap()
     }
-}
-
-impl Number for Digits {
-    // fn split(&mut self) ->
     fn is_zero(&self) -> bool {
         self.digits.iter().all(|i| *i == 0)
     }
+}
+
+impl Number for Digits {
     fn even_length(&self) -> bool {
         self.length() % 2 == 0
     }
@@ -72,56 +71,25 @@ impl Number for Digits {
         }
     }
 
-    // fn split(&)
+    fn flip_zero_one(&mut self) -> bool {
+        let zero = self.is_zero();
+        if zero {
+            self.digits[0] = 1;
+        }
+        zero
+    }
 }
 
-// #[derive(PartialEq, Eq, Hash, Clone, Copy)]
-// struct Simple {
-//     i: u64,
-// }
-
-// impl Debug for Simple {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(f, "{}", self.i)
-//     }
-// }
-
-// impl Number for Simple {
-//     fn new(i: u64) -> Self {
-//         Self { i }
-//     }
-
-//     fn is_zero(&self) -> bool {
-//         self.i == 0
-//     }
-
-//     fn even_length(&self) -> bool {
-//         let s = format!("{}", self.i);
-//         let len = s.len();
-//         len % 2 == 0
-//     }
-
-//     fn split(&mut self) -> Self {
-//         let s = format!("{}", self.i);
-//         let middle = s.len() / 2;
-//         let left: u64 = s[..middle].parse().unwrap();
-//         let right: u64 = s[middle..].parse().unwrap();
-//         self.i = left;
-//         Self::new(right)
-//     }
-
-//     fn multiply(&mut self, n: u64) {
-//         self.i *= n;
-//     }
-// }
-
-fn blink_len<T: Number + Debug>(x: &mut T, times: u8, cache: &mut HashMap<(T, u8), u64>) -> u64 {
+fn blink_len_old<T: Number + Debug>(
+    x: &mut T,
+    times: u8,
+    cache: &mut HashMap<(T, u8), u64>,
+) -> u64 {
     if times == 0 {
         // println!("ENTRY {:?}", x);
         return 1;
-    } else if x.is_zero() {
-        *x = T::new(1);
-        return blink_len(x, times - 1, cache);
+    } else if x.flip_zero_one() {
+        return blink_len_old(x, times - 1, cache);
     }
     let key = (*x, times);
     let entry = cache.get(&key);
@@ -135,14 +103,58 @@ fn blink_len<T: Number + Debug>(x: &mut T, times: u8, cache: &mut HashMap<(T, u8
 
     let r = if x.even_length() {
         let mut other: T = x.split();
-        blink_len(x, times - 1, cache) + blink_len(&mut other, times - 1, cache)
+        blink_len_old(x, times - 1, cache) + blink_len_old(&mut other, times - 1, cache)
     } else {
         x.multiply(2024);
-        blink_len(x, times - 1, cache)
+        blink_len_old(x, times - 1, cache)
     };
     cache.insert(key, r);
     r
 }
+
+// fn blink_len<T: Number + Debug>(
+//     x: &mut T,
+//     mut times: u8,
+//     cache: &mut HashMap<(T, u8), u64>,
+// ) -> u64 {
+//     let mut additional = [0; 76];
+//     let mut xs = [T::new(0); 76];
+//     let times_start = times;
+//     while times > 0 {
+//         xs[times as usize] = *x;
+//         if x.flip_zero_one() {
+//         } else {
+//             let key = (*x, times);
+//             let entry = cache.get(&key).copied();
+//             if let Some(e) = entry {
+//                 let mut sum = e;
+//                 for t in (times as usize)..=(times_start as usize) {
+//                     sum += additional[t];
+//                     let k = (xs[t], t as u8);
+//                     cache.insert(k, sum);
+//                 }
+//                 return sum;
+//             }
+
+//             if x.even_length() {
+//                 let mut other: T = x.split();
+//                 let other_len = blink_len(&mut other, times - 1, cache);
+//                 additional[times as usize] = other_len;
+//             } else {
+//                 x.multiply(2024);
+//             };
+//         }
+
+//         times -= 1;
+//     }
+//     let mut sum = 1;
+//     for t in 1..=(times_start as usize) {
+//         sum += additional[t];
+//         let k = (xs[t], t as u8);
+//         cache.insert(k, sum);
+//     }
+//     additional.iter().sum::<u64>()
+// }
 
 pub fn part1(input: &str) -> u64 {
     let mut cache = HashMap::new();
@@ -151,7 +163,8 @@ pub fn part1(input: &str) -> u64 {
         .map(|s| s.parse().unwrap())
         .map(|n| {
             let mut num = Digits::new(n);
-            blink_len(&mut num, 75, &mut cache)
+
+            blink_len_old(&mut num, 75, &mut cache)
         })
         .sum()
 }
