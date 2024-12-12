@@ -14,29 +14,66 @@ trait Number: Eq + Hash + Copy {
     fn multiply(&mut self, n: u64);
 }
 
-// const MAX_DIGITS: usize = 12;
+const MAX_DIGITS: usize = 12;
 
-// struct Number {
-//     digits: [u8; MAX_DIGITS],
-// }
-// impl Number {
-//     // fn split(&mut self) ->
-//     fn is_zero(&self) -> bool {
-//         self.digits.iter().all(|i| *i == 0)
-//     }
-//     fn even_length(&self) -> bool {
-//         self.digits
-//             .iter()
-//             .rposition(|i| *i != 0)
-//             .map(|p| p % 2 == 1)
-//             .unwrap()
-//     }
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+struct Digits {
+    digits: [u8; MAX_DIGITS],
+}
 
-//     // fn split(&)
-// }
+impl Digits {
+    fn length(&self) -> usize {
+        self.digits
+            .iter()
+            .rposition(|i| *i != 0)
+            .map(|l| l + 1)
+            .unwrap()
+    }
+}
 
-// impl Debug
-//
+impl Number for Digits {
+    // fn split(&mut self) ->
+    fn is_zero(&self) -> bool {
+        self.digits.iter().all(|i| *i == 0)
+    }
+    fn even_length(&self) -> bool {
+        self.length() % 2 == 0
+    }
+
+    fn new(mut n: u64) -> Self {
+        let mut digits = [0; MAX_DIGITS];
+        for d in &mut digits {
+            *d = (n % 10) as u8;
+            n /= 10;
+        }
+        Digits { digits }
+    }
+
+    fn split(&mut self) -> Self {
+        let mut digits = [0; MAX_DIGITS];
+        let middle: usize = self.length() / 2;
+        // for i in 0..middle {
+        //     digits[i] = self.digits[i + middle];
+        // }
+        digits[..middle].copy_from_slice(&self.digits[middle..(middle + middle)]);
+        for i in 0..middle {
+            self.digits[i + middle] = 0;
+        }
+        Digits { digits }
+    }
+
+    fn multiply(&mut self, n: u64) {
+        let mut carry = 0;
+        for d in &mut self.digits {
+            carry += (*d as u64) * n;
+
+            *d = (carry % 10) as u8;
+            carry /= 10;
+        }
+    }
+
+    // fn split(&)
+}
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 struct Simple {
@@ -80,6 +117,7 @@ impl Number for Simple {
 
 fn blink_len<T: Number + Debug>(x: &mut T, times: u8, cache: &mut HashMap<(T, u8), u64>) -> u64 {
     if times == 0 {
+        // println!("ENTRY {:?}", x);
         return 1;
     } else if x.is_zero() {
         *x = T::new(1);
@@ -107,7 +145,7 @@ pub fn part1(input: &str) -> u64 {
         .split(' ')
         .map(|s| s.parse().unwrap())
         .map(|n| {
-            let mut num = Simple::new(n);
+            let mut num = Digits::new(n);
             blink_len(&mut num, 75, &mut cache)
         })
         .sum()
