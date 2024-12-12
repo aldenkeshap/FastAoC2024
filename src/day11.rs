@@ -102,6 +102,7 @@ fn blink_len_old(x: &mut Digits, times: u8, cache: &mut HashMap<(Digits, u8), u6
 pub fn part1(input: &str) -> u64 {
     let mut cache = HashMap::new();
     input
+        .trim()
         .split(' ')
         .map(|s| s.parse().unwrap())
         .map(|n| {
@@ -115,6 +116,7 @@ pub fn part1(input: &str) -> u64 {
 pub fn part2(input: &str) -> u64 {
     let mut cache = HashMap::new();
     input
+        .trim()
         .split(' ')
         .map(|s| s.parse().unwrap())
         .map(|n| {
