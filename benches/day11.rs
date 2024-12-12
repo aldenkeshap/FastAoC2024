@@ -2,8 +2,6 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 use advent::day11;
 
-// use day11;
-
 pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("short", |b| b.iter(|| day11::part1(black_box("125 17"))));
     c.bench_function("real", |b| {

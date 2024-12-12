@@ -1,4 +1,6 @@
-use std::{collections::HashMap, fmt::Debug, hash::Hash};
+use std::{fmt::Debug, hash::Hash};
+
+use gxhash::{HashMap, HashMapExt};
 
 trait Number: Eq + Hash + Copy {
     fn new(n: u64) -> Self;
